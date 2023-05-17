@@ -8,6 +8,7 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.validation.constraints.Pattern;
 
 /**
  *
@@ -15,12 +16,13 @@ import javax.persistence.Id;
  */
 @Entity
 public class Usuari implements Serializable {
-      
+
     public static final long serialVersionUID = 1L;
-    
+
     @Id
-    public String mail;  
-    
+    @Pattern(regexp = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", message = "El correo electrónico no es válido")
+    private String mail;
+
     public String nick;
 
     public Usuari(String mail, String nick) {
@@ -51,6 +53,5 @@ public class Usuari implements Serializable {
     public String toString() {
         return "Usuari{" + "mail=" + mail + ", nick=" + nick + '}';
     }
-    
-    
+
 }

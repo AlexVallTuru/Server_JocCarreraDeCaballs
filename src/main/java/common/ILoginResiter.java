@@ -13,8 +13,10 @@ import javax.ejb.Remote;
 @Remote
 public interface ILoginResiter {
 
-    public void addUsuari(String mail, String nick);
-    
-    public void getSessio(String mail);
+    public void addUsuari(String mail, String nick)throws UsuariException;
+
+    public void getSessio(String mail)throws UsuariException;
+
+    public boolean validaUsuariExistent(String mail,String nick)throws UsuariException;
 
 }

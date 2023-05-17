@@ -10,6 +10,7 @@ import common.ICarroCompra;
 import common.ILoginResiter;
 import common.ITenda;
 import common.Usuari;
+import common.UsuariException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -58,10 +59,11 @@ public class LoginRegisterEJB implements ILoginResiter {
     private static final Logger log = Logger.getLogger(TendaEJB.class.getName());
 
     @Override
-    public void getSessio(String mail) {
+    public void getSessio(String mail) throws UsuariException {
         if (mail == null || mail.isBlank() || mail.isEmpty()) {
-            String msg = "El format del id de usuari no és vàlid:";
+            String msg = "El mail no es valid: ";
             log.log(Level.WARNING, msg);
+            throw new UsuariException(msg);
         }
 
         Usuari user = em.find(Usuari.class, mail);
@@ -69,6 +71,7 @@ public class LoginRegisterEJB implements ILoginResiter {
         if (user == null) {
             String msg = "Client no identificat: " + user + ". Impossible obtenir sessió.";
             log.log(Level.WARNING, msg);
+            throw new UsuariException(msg);
         } else {
             SingletonUsuari singletonUser = SingletonUsuari.getInstance(user.getMail(), user.getNick());
         }
@@ -76,11 +79,12 @@ public class LoginRegisterEJB implements ILoginResiter {
 
     @Override
     @Lock(LockType.WRITE)
-    public void addUsuari(String email, String nick) {
+    public void addUsuari(String email, String nick) throws UsuariException {
         Usuari user = new Usuari();
         user.setMail(email);
         user.setNick(nick);
         SingletonUsuari singletonUser = SingletonUsuari.getInstance(user.getMail(), user.getNick());
+
         try {
             persisteixAmbTransaccio(user);
 
@@ -89,8 +93,12 @@ public class LoginRegisterEJB implements ILoginResiter {
         }
     }
 
-    private void persisteixAmbTransaccio(Object ob) throws CompraException {
+    private void persisteixAmbTransaccio(Object ob) throws CompraException, NotSupportedException, SystemException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
         List<String> errors = Validadors.validaBean(ob);
+
+        userTransaction.begin();
+        em.persist(ob);
+        userTransaction.commit();
 
         if (errors.isEmpty()) {
             try {
@@ -110,6 +118,23 @@ public class LoginRegisterEJB implements ILoginResiter {
             log.log(Level.INFO, msg);
             throw new CompraException(msg);
         }
+    }
 
+    @Override
+    public boolean validaUsuariExistent(String mail, String nick) throws UsuariException {
+        try {
+            if (mail != null && !mail.isBlank() && !mail.isEmpty()) {
+                Usuari user = em.find(Usuari.class, mail);
+                if (user != null && user.getMail() != null && !user.getMail().isBlank() && !user.getMail().isEmpty()
+                        && user.getNick() != null && !user.getNick().isBlank() && !user.getNick().isEmpty()) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            String msg = "Error al validar el usuario existente: " + e.getMessage();
+            log.log(Level.WARNING, msg);
+            throw new UsuariException(msg);
+        }
     }
 }
