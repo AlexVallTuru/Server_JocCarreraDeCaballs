@@ -1,12 +1,8 @@
 package main;
 
-import common.LiniaCompra;
 import common.Client;
-import common.CompraException;
 import common.Article;
 import common.Lookups;
-import common.Compra;
-import common.ICarroCompra;
 import common.ILoginResiter;
 import common.ITenda;
 import common.Usuari;
@@ -37,6 +33,7 @@ import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
+import javax.security.auth.login.LoginException;
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
@@ -58,6 +55,14 @@ public class LoginRegisterEJB implements ILoginResiter {
 
     private static final Logger log = Logger.getLogger(TendaEJB.class.getName());
 
+    /**
+     * Classe encargada de buscar el usuario de la base de datos a través de su
+     * id mail
+     *
+     * @param mail mail que se introduce en la parte gráfica del login
+     * @throws UsuariException Conjunto de excepciones reguladas dependiendo de
+     * lo ocurrido
+     */
     @Override
     public void getSessio(String mail) throws UsuariException {
         if (mail == null || mail.isBlank() || mail.isEmpty()) {
@@ -77,53 +82,77 @@ public class LoginRegisterEJB implements ILoginResiter {
         }
     }
 
+    /**
+     * Classe encargada de realizar un pequeño filtro de los campos y añadir el
+     * usuario a traés de la función persisteixAmbTransaccio.
+     *
+     * @param email email que se introduce en la parte gráfica del registro
+     * @param nick nick que se introduce en la parte gráfica del registro
+     * @throws UsuariException Conjunto de excepciones reguladas dependiendo de
+     * lo ocurrido
+     */
     @Override
     @Lock(LockType.WRITE)
     public void addUsuari(String email, String nick) throws UsuariException {
-        Usuari user = new Usuari();
-        user.setMail(email);
-        user.setNick(nick);
-        SingletonUsuari singletonUser = SingletonUsuari.getInstance(user.getMail(), user.getNick());
+        if (email != null && !email.isBlank() && nick != null && !nick.isBlank()) {
+            Usuari user = new Usuari();
+            user.setMail(email);
+            user.setNick(nick);
+            SingletonUsuari singletonUser = SingletonUsuari.getInstance(user.getMail(), user.getNick());
 
-        try {
-            persisteixAmbTransaccio(user);
-
-        } catch (Exception ex) {
-            log.log(Level.SEVERE, "Error al persistir el usuario", ex);
+            try {
+                persisteixAmbTransaccio(user);
+            } catch (Exception ex) {
+                String msg = "Error al guardar el usuario: " + ex.getMessage();
+                log.log(Level.SEVERE, msg, ex);
+                throw new UsuariException(msg);
+            }
+        } else {
+            String msg = "Error al guardar el usuario: No puedes dejar campos vacíos";
+            log.log(Level.SEVERE, msg);
+            throw new UsuariException(msg);
         }
     }
 
-    private void persisteixAmbTransaccio(Object ob) throws CompraException, NotSupportedException, SystemException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
+    /**
+     * Funcion encargada de realizar el proceso de persistencia a la base de
+     * datos Tambien tiene la mayoria de las excepciones algunas de ellas
+     * reguladas por el array list de errors que contiene la validaciónes de las
+     * classes.
+     *
+     * @param ob
+     * @throws NotSupportedException
+     * @throws SystemException
+     * @throws RollbackException
+     * @throws HeuristicMixedException
+     * @throws HeuristicRollbackException
+     * @throws UsuariException
+     */
+    private void persisteixAmbTransaccio(Object ob) throws NotSupportedException, SystemException, RollbackException, HeuristicMixedException, HeuristicRollbackException, UsuariException {
         List<String> errors = Validadors.validaBean(ob);
-
-        userTransaction.begin();
-        em.persist(ob);
-        userTransaction.commit();
 
         if (errors.isEmpty()) {
             try {
-
                 userTransaction.begin();
                 em.persist(ob);
                 userTransaction.commit();
-
             } catch (NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException ex) {
-                String msg = "Error desant: " + errors.toString();
+                String msg = "Error guadando: " + errors.toString();
                 log.log(Level.INFO, msg);
-                throw new CompraException(msg);
+                throw new UsuariException(msg);
             }
 
         } else {
             String msg = "Errors de validació: " + errors.toString();
             log.log(Level.INFO, msg);
-            throw new CompraException(msg);
+            throw new UsuariException(msg);
         }
     }
 
     @Override
     public boolean validaUsuariExistent(String mail, String nick) throws UsuariException {
         try {
-            if (mail != null && !mail.isBlank() && !mail.isEmpty()) {
+            if (mail != null && !mail.isBlank() && !mail.isEmpty() && nick != null && !nick.isBlank() && !nick.isEmpty()) {
                 Usuari user = em.find(Usuari.class, mail);
                 if (user != null && user.getMail() != null && !user.getMail().isBlank() && !user.getMail().isEmpty()
                         && user.getNick() != null && !user.getNick().isBlank() && !user.getNick().isEmpty()) {

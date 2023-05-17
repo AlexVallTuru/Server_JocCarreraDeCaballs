@@ -8,7 +8,9 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 /**
  *
@@ -23,6 +25,9 @@ public class Usuari implements Serializable {
     @Pattern(regexp = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", message = "El correo electrónico no es válido")
     private String mail;
 
+    @NotNull(message = "El campo 'nick' no puede estar vacío")
+    @Size(min = 3, message = "El campo 'nick' debe tener al menos 3 caracteres")
+    @Column(unique = true)
     public String nick;
 
     public Usuari(String mail, String nick) {
