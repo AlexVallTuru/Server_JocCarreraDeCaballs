@@ -7,6 +7,7 @@
     <class>common.Article</class>
     <class>common.LiniaCompra</class>
     <class>common.Usuari</class>
+    <class>common.PartidaJuego</class>
     <properties>
       <!-- Propietats Hibernate -->
       <property name="hibernate.hbm2ddl.auto" value="update"/>

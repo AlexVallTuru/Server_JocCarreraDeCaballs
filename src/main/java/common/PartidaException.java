@@ -9,9 +9,9 @@ package common;
  *
  * @author manel
  */
-public class CompraException extends Exception {
+public class PartidaException extends Exception {
 
-    public CompraException(String s) {
+    public PartidaException(String s) {
         super(s);
     }
     

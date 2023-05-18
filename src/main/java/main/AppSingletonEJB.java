@@ -27,7 +27,7 @@ import javax.ejb.Startup;
  * 
  */
 @Singleton //A Singleton Session Bean maintains the state of the bean for the complete lifecycle of the application.
-@Startup //the javax.ejb.Startup annotation to inform the EJB container to initialize the bean at the startup
+@Startup //the javax.ejb.Startup annotation to inform the EJB container to  the bean at the startup
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER) //Simply put, in container-managed concurrency, the container controls how clients' access to methods
 public class AppSingletonEJB {
     

@@ -1,10 +1,8 @@
 package main;
 
-import common.Client;
-import common.Article;
+
 import common.Lookups;
 import common.ILoginResiter;
-import common.ITenda;
 import common.Usuari;
 import common.UsuariException;
 import java.util.Date;
@@ -53,7 +51,7 @@ public class LoginRegisterEJB implements ILoginResiter {
     @Inject
     private UserTransaction userTransaction;
 
-    private static final Logger log = Logger.getLogger(TendaEJB.class.getName());
+    private static final Logger log = Logger.getLogger(LoginRegisterEJB.class.getName());
 
     /**
      * Classe encargada de buscar el usuario de la base de datos a través de su
