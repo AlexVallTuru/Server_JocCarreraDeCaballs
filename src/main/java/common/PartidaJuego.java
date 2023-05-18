@@ -12,6 +12,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 
@@ -28,7 +30,7 @@ public class PartidaJuego implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idPartida;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "email", referencedColumnName = "mail")
     private Usuari usuari;
 
