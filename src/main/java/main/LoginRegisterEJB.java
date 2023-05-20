@@ -1,6 +1,5 @@
 package main;
 
-
 import common.Lookups;
 import common.ILoginResiter;
 import common.Usuari;
@@ -75,8 +74,6 @@ public class LoginRegisterEJB implements ILoginResiter {
             String msg = "Client no identificat: " + user + ". Impossible obtenir sessió.";
             log.log(Level.WARNING, msg);
             throw new UsuariException(msg);
-        } else {
-            SingletonUsuari singletonUser = SingletonUsuari.getInstance(user.getMail(), user.getNick());
         }
     }
 
@@ -93,13 +90,28 @@ public class LoginRegisterEJB implements ILoginResiter {
     @Lock(LockType.WRITE)
     public void addUsuari(String email, String nick) throws UsuariException {
         if (email != null && !email.isBlank() && nick != null && !nick.isBlank()) {
+            Usuari existingUserByEmail = em.find(Usuari.class, email);
+            if (existingUserByEmail != null && existingUserByEmail.getMail().equals(email)) {
+                String msg = "Error al guardar el usuario: Mail Existente";
+                log.log(Level.SEVERE, msg);
+                throw new UsuariException(msg);
+            }
+            //TODO REVISAR PORQUE NO SALTA ESTA EXCEPCION
+            Usuari existingUserByNick = em.find(Usuari.class, nick);
+            if (existingUserByNick != null && existingUserByNick.getNick().equals(nick)) {
+                String msg = "Error al guardar el usuario: Nick Existente";
+                log.log(Level.SEVERE, msg);
+                throw new UsuariException(msg);
+            }
+
             Usuari user = new Usuari();
             user.setMail(email);
             user.setNick(nick);
-            SingletonUsuari singletonUser = SingletonUsuari.getInstance(user.getMail(), user.getNick());
 
             try {
-                persisteixAmbTransaccio(user);
+                if (existingUserByEmail == null && existingUserByNick == null) {
+                    persisteixAmbTransaccio(user);
+                }
             } catch (Exception ex) {
                 String msg = "Error al guardar el usuario: " + ex.getMessage();
                 log.log(Level.SEVERE, msg, ex);
@@ -135,7 +147,7 @@ public class LoginRegisterEJB implements ILoginResiter {
                 em.persist(ob);
                 userTransaction.commit();
             } catch (NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException ex) {
-                String msg = "Error guadando: " + errors.toString();
+                String msg = "Error guadando" + errors.toString();
                 log.log(Level.INFO, msg);
                 throw new UsuariException(msg);
             }
@@ -149,19 +161,21 @@ public class LoginRegisterEJB implements ILoginResiter {
 
     @Override
     public boolean validaUsuariExistent(String mail, String nick) throws UsuariException {
-        try {
-            if (mail != null && !mail.isBlank() && !mail.isEmpty() && nick != null && !nick.isBlank() && !nick.isEmpty()) {
-                Usuari user = em.find(Usuari.class, mail);
-                if (user != null && user.getMail() != null && !user.getMail().isBlank() && !user.getMail().isEmpty()
-                        && user.getNick() != null && !user.getNick().isBlank() && !user.getNick().isEmpty()) {
-                    return true;
-                }
-            }
+        if (mail == null || mail.isBlank() || mail.isEmpty() || nick == null || nick.isBlank() || nick.isEmpty()) {
             return false;
+        }
+
+        try {
+            Usuari user = em.find(Usuari.class, mail);
+            if (user != null && user.getMail().equals(mail) && user.getNick().equals(nick)) {
+                return true;
+            }
         } catch (Exception e) {
             String msg = "Error al validar el usuario existente: " + e.getMessage();
             log.log(Level.WARNING, msg);
             throw new UsuariException(msg);
         }
+
+        return false;
     }
 }
