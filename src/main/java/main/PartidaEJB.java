@@ -8,7 +8,10 @@ import common.IPartida;
 import common.PartidaException;
 import common.PartidaJuego;
 import common.Usuari;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.ConcurrencyManagement;
@@ -27,6 +30,7 @@ import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 import javax.transaction.UserTransaction;
+import common.EnumCartes.Tipus;
 
 /**
  *
@@ -44,6 +48,8 @@ public class PartidaEJB implements IPartida {
     private UserTransaction userTransaction;
 
     private static final Logger log = Logger.getLogger(PartidaEJB.class.getName());
+    
+    ArrayList<String> descarte = new ArrayList();
 
     @Override
     @Lock(LockType.WRITE)
@@ -94,6 +100,72 @@ public class PartidaEJB implements IPartida {
             Logger.getLogger(PartidaEJB.class.getName()).log(Level.SEVERE, "NO SE CONSIGUE PERSISTIR LOS PUNTOS DE LA PARTIDA:", ex);
         }
 
+    }
+
+    
+    @Override
+    public String partidaLogica(int puntosPartida, String palo) {
+        // Obtener valor aleatorio del enum
+        boolean exit;
+        Tipus randomTipus;
+        if (descarte.size() == 40) { //Si se han descartado todas las cartas termina la partida
+            System.out.println("Fin de la baraja");
+            return "END";
+        } else {
+            do {
+                randomTipus = getRandomTipus();
+                exit = iteraDescarte(descarte, randomTipus.getImageName());
+            } while (!exit);
+            if (exit) {
+                descarte.add(randomTipus.getImageName());
+            }
+
+            System.out.println("Valor del enum: " + randomTipus.getValue());
+            System.out.println("Imatge: " + randomTipus.getImageName());
+            System.out.println("Puntuació: " + randomTipus.getScore());
+            if (randomTipus.getValue().equals(palo)) {
+                puntosPartida += randomTipus.getScore();
+            }
+            /*else {
+                i -= 1;
+                if (i < 0) {
+                    i = 0;
+                }
+                
+            }*/
+            System.out.println("Puntuacio actual: " + puntosPartida + "/38");
+            System.out.println("Cartas utilizadas: " + descarte.size() + "/40");
+            return Integer.toString(puntosPartida);
+        }
+    }
+
+    /**
+     * Itera la pila de descartes para confirmar si la carta ya ha salido en la
+     * partida.
+     *
+     * @param descarte
+     * @param carta
+     * @return
+     */
+    private static boolean iteraDescarte(ArrayList<String> descarte, String carta) {
+        Iterator<String> iterator = descarte.iterator();
+        while (iterator.hasNext()) {
+            if (carta.equals(iterator.next())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Obtiene una carta aleatoria del enum de la baraja.
+     *
+     * @return
+     */
+    private static Tipus getRandomTipus() {
+        Tipus[] tipusValues = Tipus.values();
+        int randomIndex = new Random().nextInt(tipusValues.length);
+        return tipusValues[randomIndex];
     }
 
     /**
