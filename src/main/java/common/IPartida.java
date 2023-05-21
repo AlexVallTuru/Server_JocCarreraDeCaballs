@@ -19,5 +19,8 @@ public interface IPartida {
     
     public void añadirPuntosPartida(int idPartida, int puntosPartida)throws PartidaException;
     
-    public List<String> MostrarDatos() throws PartidaException;
+    //public List<String> MostrarDatos() throws PartidaException;
+    
+    public List<PartidaJuego> ObtenerHallOfFame(int dificultad) throws PartidaException; 
+    
 }

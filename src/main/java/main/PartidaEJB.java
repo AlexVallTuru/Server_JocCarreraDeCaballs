@@ -8,6 +8,8 @@ import common.IPartida;
 import common.PartidaException;
 import common.PartidaJuego;
 import common.Usuari;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -153,10 +155,44 @@ public class PartidaEJB implements IPartida {
         }
     }
 
+    /**
+     * Metodo que realiza una consulta a la tabla de PartidaJuego i a la tabla
+     * de Usuari,para obtener el hall of fame
+     *
+     * @return una lista de PartidaJuego
+     * @throws PartidaException
+     */
     @Override
-    public List<String> MostrarDatos() throws PartidaException {
-        //obtener arraylist de partidas
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    @Lock(LockType.READ)
+    public List<PartidaJuego> ObtenerHallOfFame(int dificultad) throws PartidaException {
+        List<PartidaJuego> ret = null;
+        try {
+            log.log(Level.INFO, "Retornando Hall of fame....");
+
+            String query = "SELECT p.idPartida, p.fechaInicio, p.puntuacion, u.nick "
+                    + "FROM PartidaJuego p "
+                    + "INNER JOIN p.usuari u "
+                    + "WHERE u.mail = p.usuari.mail "
+                    + "AND p.nivelDificultad = " + dificultad
+                    + " ORDER BY p.puntuacion DESC";
+
+            List<Object[]> result = em.createQuery(query, Object[].class).getResultList();
+
+            ret = new ArrayList<>();
+            for (Object[] row : result) {
+                PartidaJuego partida = new PartidaJuego();
+                partida.setIdPartida((int) row[0]);
+                partida.setFechaInicio((Date) row[1]);
+                partida.setPuntuacion((int) row[2]);
+                partida.setNick((String) row[3]);
+                ret.add(partida);
+            }
+        } catch (Exception ex) {
+            log.log(Level.INFO, "Error al hacer la consulta para extraer Hall of Fame");
+            // Manejar la excepción o realizar alguna otra acción necesaria
+        }
+
+        return ret;
     }
 
 }

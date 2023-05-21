@@ -40,6 +40,8 @@ public class PartidaJuego implements Serializable {
     private int nivelDificultad;
     private int puntuacion;
 
+    private String nick;
+
     public PartidaJuego() {
     }
 
@@ -52,6 +54,11 @@ public class PartidaJuego implements Serializable {
     public int getIdPartida() {
         return idPartida;
     }
+
+    public void setIdPartida(int idPartida) {
+        this.idPartida = idPartida;
+    }
+    
 
     @PrePersist
     public void prePersistDate() {
@@ -89,4 +96,13 @@ public class PartidaJuego implements Serializable {
     public void setPuntuacion(int puntuacion) {
         this.puntuacion = puntuacion;
     }
+
+    public String getNick() {
+        return nick;
+    }
+
+    public void setNick(String nick) {
+        this.nick = nick;
+    }
+
 }
