@@ -31,6 +31,7 @@ import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 import javax.transaction.UserTransaction;
 import common.EnumCartes.Tipus;
+import common.ObjetoPartida;
 
 /**
  *
@@ -48,7 +49,7 @@ public class PartidaEJB implements IPartida {
     private UserTransaction userTransaction;
 
     private static final Logger log = Logger.getLogger(PartidaEJB.class.getName());
-    
+
     ArrayList<String> descarte = new ArrayList();
 
     @Override
@@ -102,17 +103,18 @@ public class PartidaEJB implements IPartida {
 
     }
 
-    
     @Override
-    public String partidaLogica(int puntosPartida, String palo) {
+    public ObjetoPartida partidaLogica(int puntosPartida, String palo, int dificultad) {
         // Obtener valor aleatorio del enum
         boolean exit;
         Tipus randomTipus;
+        ObjetoPartida objeto = new ObjetoPartida();
+        log.log(Level.INFO, "Descartadas: {0}", descarte.size());
         if (descarte.size() == 40) { //Si se han descartado todas las cartas termina la partida
-            System.out.println("Fin de la baraja");
-            return "END";
+            log.log(Level.INFO, "Fin de la baraja");
+            objeto.setIsFinished(true);
         } else {
-            do {
+            do { // Obtiene una carta que no haya sido descartada
                 randomTipus = getRandomTipus();
                 exit = iteraDescarte(descarte, randomTipus.getImageName());
             } while (!exit);
@@ -120,23 +122,30 @@ public class PartidaEJB implements IPartida {
                 descarte.add(randomTipus.getImageName());
             }
 
-            System.out.println("Valor del enum: " + randomTipus.getValue());
-            System.out.println("Imatge: " + randomTipus.getImageName());
-            System.out.println("Puntuació: " + randomTipus.getScore());
+            log.log(Level.INFO, "Valor del enum: {0}", randomTipus.getValue());
+            log.log(Level.INFO, "Imatge: {0}", randomTipus.getImageName());
+            log.log(Level.INFO, "Puntuaci\u00f3: {0}", randomTipus.getScore());
             if (randomTipus.getValue().equals(palo)) {
-                puntosPartida += randomTipus.getScore();
-            }
-            /*else {
-                i -= 1;
-                if (i < 0) {
-                    i = 0;
+                // Asignamos los valores al objeto
+                objeto.setImageName(randomTipus.getImageName());
+                objeto.setScore(randomTipus.getScore() + puntosPartida);
+                objeto.setIsFinished(false);
+            } else if (dificultad == 1) { // Factor de dificultad
+                objeto.setScore(puntosPartida - 1);
+                objeto.setImageName(randomTipus.getImageName());
+                if (objeto.getScore() < 0) {
+                    objeto.setScore(0);
                 }
-                
-            }*/
-            System.out.println("Puntuacio actual: " + puntosPartida + "/38");
-            System.out.println("Cartas utilizadas: " + descarte.size() + "/40");
-            return Integer.toString(puntosPartida);
+            } else {
+                objeto.setImageName(randomTipus.getImageName());
+                objeto.setScore(puntosPartida);
+                objeto.setIsFinished(false);
+            }
+
+            log.log(Level.INFO, "Puntuacio actual: {0}/38", puntosPartida);
+            log.log(Level.INFO, "Cartas utilizadas: {0}/40", descarte.size());
         }
+        return objeto;
     }
 
     /**
