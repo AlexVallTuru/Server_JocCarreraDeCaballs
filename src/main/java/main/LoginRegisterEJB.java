@@ -90,16 +90,10 @@ public class LoginRegisterEJB implements ILoginResiter {
     @Lock(LockType.WRITE)
     public void addUsuari(String email, String nick) throws UsuariException {
         if (email != null && !email.isBlank() && nick != null && !nick.isBlank()) {
+
             Usuari existingUserByEmail = em.find(Usuari.class, email);
             if (existingUserByEmail != null && existingUserByEmail.getMail().equals(email)) {
                 String msg = "Error al guardar el usuario: Mail Existente";
-                log.log(Level.SEVERE, msg);
-                throw new UsuariException(msg);
-            }
-            //TODO REVISAR PORQUE NO SALTA ESTA EXCEPCION
-            Usuari existingUserByNick = em.find(Usuari.class, nick);
-            if (existingUserByNick != null && existingUserByNick.getNick().equals(nick)) {
-                String msg = "Error al guardar el usuario: Nick Existente";
                 log.log(Level.SEVERE, msg);
                 throw new UsuariException(msg);
             }
@@ -109,14 +103,15 @@ public class LoginRegisterEJB implements ILoginResiter {
             user.setNick(nick);
 
             try {
-                if (existingUserByEmail == null && existingUserByNick == null) {
+                if (existingUserByEmail == null) {
                     persisteixAmbTransaccio(user);
                 }
             } catch (Exception ex) {
-                String msg = "Error al guardar el usuario: " + ex.getMessage();
+                String msg = "Error al guardar el usuario";
                 log.log(Level.SEVERE, msg, ex);
                 throw new UsuariException(msg);
             }
+
         } else {
             String msg = "Error al guardar el usuario: No puedes dejar campos vacíos";
             log.log(Level.SEVERE, msg);

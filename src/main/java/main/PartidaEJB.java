@@ -50,6 +50,10 @@ public class PartidaEJB implements IPartida {
     @Override
     @Lock(LockType.WRITE)
     public int createPartida(int Dificultad, String mail, String nick) {
+
+        //True para realizar el persist a la base de datos
+        Boolean persistBol = true;
+
         int idPartida = 0;
 
         Usuari usuari = new Usuari(mail, nick);
@@ -61,7 +65,7 @@ public class PartidaEJB implements IPartida {
             partidaJuego.prePersistDate();
             partidaJuego.setNivelDificultad(Dificultad);
 
-            persisteixAmbTransaccio(partidaJuego);
+            persisteixAmbTransaccio(partidaJuego, persistBol);
 
             idPartida = partidaJuego.getIdPartida();
 
@@ -79,6 +83,10 @@ public class PartidaEJB implements IPartida {
     @Override
     @Lock(LockType.WRITE)
     public void añadirPuntosPartida(int idPartida, int puntosPartida) throws PartidaException {
+
+        //False para realizar el merge a la base de datos
+        Boolean mergeBol = false;
+
         if (idPartida == 0) {
             String msg = "ERROR AL GENERAR LA PARTIDA.";
             log.log(Level.WARNING, msg);
@@ -90,7 +98,7 @@ public class PartidaEJB implements IPartida {
 
         try {
 
-            mergeAmbTransaccio(partidaJuego);
+            persisteixAmbTransaccio(partidaJuego, mergeBol);
 
         } catch (NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException ex) {
             Logger.getLogger(PartidaEJB.class.getName()).log(Level.SEVERE, "NO SE CONSIGUE PERSISTIR LOS PUNTOS DE LA PARTIDA:", ex);
@@ -100,7 +108,7 @@ public class PartidaEJB implements IPartida {
 
     /**
      * Función encargada de realizar el proceso de persistencia a la base de
-     * datos con transacción.
+     * datos con transacción o merge.
      *
      * @param partidaJuego La partida que se va a persistir.
      * @throws NotSupportedException
@@ -111,48 +119,46 @@ public class PartidaEJB implements IPartida {
      * @throws PartidaException Excepción lanzada en caso de error durante la
      * persistencia.
      */
-    private void persisteixAmbTransaccio(PartidaJuego partidaJuego) throws PartidaException, NotSupportedException, SystemException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
+    private void persisteixAmbTransaccio(PartidaJuego partidaJuego, Boolean mergeOrPersist) throws PartidaException, NotSupportedException, SystemException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
         List<String> errors = Validadors.validaBean(partidaJuego);
+        if (mergeOrPersist) {
+            if (errors.isEmpty()) {
+                try {
 
-        if (errors.isEmpty()) {
-            try {
+                    userTransaction.begin();
+                    em.persist(partidaJuego);
+                    userTransaction.commit();
 
-                userTransaction.begin();
-                em.persist(partidaJuego);
-                userTransaction.commit();
-
-            } catch (SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException ex) {
-                String msg = "Error al guardar la partida: " + ex.getMessage();
+                } catch (SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException ex) {
+                    String msg = "Error al guardar la partida: " + ex.getMessage();
+                    log.log(Level.INFO, msg);
+                    throw new PartidaException(msg);
+                }
+            } else {
+                String msg = "Errores de validación: " + errors.toString();
                 log.log(Level.INFO, msg);
                 throw new PartidaException(msg);
             }
         } else {
-            String msg = "Errores de validación: " + errors.toString();
-            log.log(Level.INFO, msg);
-            throw new PartidaException(msg);
-        }
-    }
+            if (errors.isEmpty()) {
+                try {
 
-    private void mergeAmbTransaccio(PartidaJuego partidaJuego) throws PartidaException, NotSupportedException, SystemException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
-        List<String> errors = Validadors.validaBean(partidaJuego);
+                    userTransaction.begin();
+                    em.merge(partidaJuego);
+                    userTransaction.commit();
 
-        if (errors.isEmpty()) {
-            try {
-
-                userTransaction.begin();
-                em.merge(partidaJuego);
-                userTransaction.commit();
-
-            } catch (SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException ex) {
-                String msg = "Error al guardar la partida: " + ex.getMessage();
+                } catch (SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException ex) {
+                    String msg = "Error al guardar la partida: " + ex.getMessage();
+                    log.log(Level.INFO, msg);
+                    throw new PartidaException(msg);
+                }
+            } else {
+                String msg = "Errores de validación: " + errors.toString();
                 log.log(Level.INFO, msg);
                 throw new PartidaException(msg);
             }
-        } else {
-            String msg = "Errores de validación: " + errors.toString();
-            log.log(Level.INFO, msg);
-            throw new PartidaException(msg);
         }
+
     }
 
     /**
