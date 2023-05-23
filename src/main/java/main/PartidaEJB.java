@@ -103,6 +103,14 @@ public class PartidaEJB implements IPartida {
 
     }
 
+    /**
+     * Limpia la lista de descartes.
+     */
+    @Override
+    public void limpiaDescartes() {
+        descarte.clear();
+    }
+    
     @Override
     public ObjetoPartida partidaLogica(int puntosPartida, String palo, int dificultad) {
         // Obtener valor aleatorio del enum
@@ -112,6 +120,7 @@ public class PartidaEJB implements IPartida {
         log.log(Level.INFO, "Descartadas: {0}", descarte.size());
         if (descarte.size() == 40) { //Si se han descartado todas las cartas termina la partida
             log.log(Level.INFO, "Fin de la baraja");
+            limpiaDescartes();
             objeto.setIsFinished(true);
         } else {
             do { // Obtiene una carta que no haya sido descartada
@@ -141,9 +150,11 @@ public class PartidaEJB implements IPartida {
                 objeto.setScore(puntosPartida);
                 objeto.setIsFinished(false);
             }
-
             log.log(Level.INFO, "Puntuacio actual: {0}/38", puntosPartida);
             log.log(Level.INFO, "Cartas utilizadas: {0}/40", descarte.size());
+            if (puntosPartida >= 38) { // Limpia la pila de descartes al final de la partida
+                limpiaDescartes();
+            }
         }
         return objeto;
     }

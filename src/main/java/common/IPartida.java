@@ -19,6 +19,8 @@ public interface IPartida {
     
     public void añadirPuntosPartida(int idPartida, int puntosPartida)throws PartidaException;
     
+    public void limpiaDescartes();
+    
     public ObjetoPartida partidaLogica(int puntosPartida, String palo, int dificultad);
     
     public List<String> MostrarDatos() throws PartidaException;
