@@ -23,8 +23,6 @@ public interface IPartida {
     
     public ObjetoPartida partidaLogica(int puntosPartida, String palo, int dificultad);
     
-    public List<String> MostrarDatos() throws PartidaException;
-    
     public List<PartidaJuego> ObtenerHallOfFame(int dificultad) throws PartidaException; 
     
 }
