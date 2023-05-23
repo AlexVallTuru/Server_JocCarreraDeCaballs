@@ -170,11 +170,12 @@ public class PartidaEJB implements IPartida {
             log.log(Level.INFO, "Retornando Hall of fame....");
 
             String query = "SELECT p.idPartida, p.fechaInicio, p.puntuacion, u.nick "
-                    + "FROM PartidaJuego p "
-                    + "INNER JOIN p.usuari u "
-                    + "WHERE u.mail = p.usuari.mail "
-                    + "AND p.nivelDificultad = " + dificultad
-                    + " ORDER BY p.puntuacion DESC";
+             + "FROM PartidaJuego p "
+             + "INNER JOIN p.usuari u "
+             + "WHERE u.mail = p.usuari.mail "
+             + "AND p.nivelDificultad = " + dificultad
+             + "AND p.puntuacion > 0 "
+             + "ORDER BY p.puntuacion DESC";
 
             List<Object[]> result = em.createQuery(query, Object[].class).getResultList();
 
@@ -189,6 +190,7 @@ public class PartidaEJB implements IPartida {
             }
         } catch (Exception ex) {
             log.log(Level.INFO, "Error al hacer la consulta para extraer Hall of Fame");
+            
             // Manejar la excepción o realizar alguna otra acción necesaria
         }
 
