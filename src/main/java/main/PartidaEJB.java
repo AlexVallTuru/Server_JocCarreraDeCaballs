@@ -146,17 +146,23 @@ public class PartidaEJB implements IPartida {
             if (randomTipus.getValue().equals(palo)) {
                 // Asignamos los valores al objeto
                 objeto.setImageName(randomTipus.getImageName());
+                objeto.setMovimiento("+ " + randomTipus.getScore() + " puntos obtenidos!");
                 objeto.setScore(randomTipus.getScore() + puntosPartida);
                 objeto.setIsFinished(false);
             } else if (dificultad == 1) { // Factor de dificultad
-                objeto.setScore(puntosPartida - 1);
+                objeto.setScore(puntosPartida - 3);
+                objeto.setMovimiento("La carta no és del palo correcto, te quitamos 3 puntos!");
                 objeto.setImageName(randomTipus.getImageName());
                 if (objeto.getScore() < 0) {
                     objeto.setScore(0);
                 }
             } else {
                 objeto.setImageName(randomTipus.getImageName());
-                objeto.setScore(puntosPartida);
+                objeto.setScore(puntosPartida -2);
+                if (objeto.getScore() < 0) {
+                    objeto.setScore(0);
+                }
+                objeto.setMovimiento("La carta no és del palo correcto, te quitamos 2 puntos!");
                 objeto.setIsFinished(false);
             }
             log.log(Level.INFO, "Puntuacio actual: {0}/38", puntosPartida);

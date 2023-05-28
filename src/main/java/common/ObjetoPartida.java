@@ -14,14 +14,16 @@ public class ObjetoPartida implements Serializable{
     private String imageName;
     private int score;
     private boolean isFinished;
+    private String movimiento;
 
     public ObjetoPartida() {
     }
     
-    public ObjetoPartida (String imageName, int score, boolean isFinished) {
+    public ObjetoPartida (String imageName, int score, boolean isFinished, String movimiento) {
         this.imageName = imageName;
         this.score = score;
         this.isFinished = isFinished;
+        this.movimiento = movimiento;
     }
 
     /**
@@ -65,6 +67,15 @@ public class ObjetoPartida implements Serializable{
     public void setIsFinished(boolean isFinished) {
         this.isFinished = isFinished;
     }
+
+    public String getMovimiento() {
+        return movimiento;
+    }
+
+    public void setMovimiento(String movimiento) {
+        this.movimiento = movimiento;
+    }
+    
     
     
 }
