@@ -88,7 +88,7 @@ public class PartidaEJB implements IPartida {
 
     @Override
     @Lock(LockType.WRITE)
-    public void añadirPuntosPartida(int idPartida, int puntosPartida) throws PartidaException {
+    public void aniadirPuntosPartida(int idPartida, int puntosPartida) throws PartidaException {
 
         //False para realizar el merge a la base de datos
         Boolean mergeBol = false;
@@ -120,6 +120,15 @@ public class PartidaEJB implements IPartida {
         descarte.clear();
     }
     
+    /**
+     * Controla la logica pringipal del juego, sumando, restando y controlando
+     * la pila de descartes. Finalmente devuelve el resultsdo al cliente.
+     * 
+     * @param puntosPartida
+     * @param palo
+     * @param dificultad
+     * @return 
+     */
     @Override
     public ObjetoPartida partidaLogica(int puntosPartida, String palo, int dificultad) {
         // Obtener valor aleatorio del enum

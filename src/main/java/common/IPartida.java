@@ -17,7 +17,7 @@ public interface IPartida {
     //Actualment no retorna res, pero més endevant retornara la data de creació de la partida
     public int createPartida(int Dificultad,String mail,String nick) throws PartidaException;
     
-    public void añadirPuntosPartida(int idPartida, int puntosPartida)throws PartidaException;
+    public void aniadirPuntosPartida(int idPartida, int puntosPartida)throws PartidaException;
     
     public void limpiaDescartes();
     
